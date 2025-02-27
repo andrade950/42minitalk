@@ -1,0 +1,2 @@
+# 42minitalk
+minitalk project
