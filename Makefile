@@ -6,7 +6,7 @@
 #    By: joaomart <joaomart@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/01/23 09:55:49 by joaomart          #+#    #+#              #
-#    Updated: 2025/02/26 17:45:39 by joaomart         ###   ########.fr        #
+#    Updated: 2025/03/03 18:20:18 by joaomart         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -23,7 +23,7 @@ FT_PRINTF = $(FT_PRINTF_DIR)/libftprintf.a
 
 # minitalk #
 MINITALK_DIR = srcs
-SERVER = $(MINITALK_DIR)/server.c
+SERVER = $(MINITALK_DIR)/server.c $(MINITALK_DIR)/utils.c
 CLIENT = $(MINITALK_DIR)/client.c
 SERVER_OBJ = $(SERVER:.c=.o)
 CLIENT_OBJ = $(CLIENT:.c=.o)
