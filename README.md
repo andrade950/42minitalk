@@ -1,74 +1,109 @@
-# minitalk
+<div align="center">
+
+# 📡 minitalk
+
+**Interprocess communication over UNIX signals, in C**
+
+[![Language](https://img.shields.io/badge/Language-C-blue.svg)](https://en.wikipedia.org/wiki/C_(programming_language))
+[![IPC](https://img.shields.io/badge/IPC-UNIX%20Signals-orange.svg)](#how-it-works)
+[![Norm](https://img.shields.io/badge/42-Norminette-brightgreen.svg)](#guidelines)
 
 [Leia em Português](README.pt.md)
 
-An implementation of interprocess communication using UNIX signals.
+</div>
 
-- **Objective**: Create a communication program between a client and a server using UNIX signals.
+---
 
-- **Functionality**:
-  - The **server** must be started first and display its PID upon initialization.
-  - The **client** receives the server's PID and the string to be sent as parameters.
-  - The client sends the string to the server using only the `SIGUSR1` and `SIGUSR2` signals.
-  - The server receives the string and quickly prints it to the standard output.
-  - The server must be able to handle multiple clients without needing to restart.
+## 📌 Overview
 
-- **Implementation Details**:
-  - The **server** listens for incoming signals and reconstructs the message bit by bit.
-  - The **client** converts each character of the message into an 8-bit binary sequence and transmits it using signals.
-  - A global state structure (`t_state`) is used to manage incoming bits and reconstruct the message.
-  - A cleanup function ensures proper memory management and prevents memory leaks.
-  - The project handles **SIGINT** (`Ctrl + C`) gracefully by freeing memory before exiting.
+`minitalk` implements a client-server communication system using only two UNIX signals — `SIGUSR1` and `SIGUSR2`. Each character of a message is broken down into its 8-bit binary representation and transmitted signal by signal, then reconstructed on the server side.
 
-- **Allowed Functions**:  
-  | Function       | Description |
-  |--------------|-------------|
-  | `write`      | Writes to the standard output |
-  | `ft_printf`  | Prints formatted messages |
-  | `signal`     | Defines a signal handler |
-  | `sigemptyset` | Initializes an empty signal set |
-  | `sigaddset`  | Adds a signal to the set |
-  | `sigaction`  | Defines actions for signals |
-  | `kill`       | Sends signals to processes |
-  | `getpid`     | Retrieves the current process PID |
-  | `malloc`     | Allocates memory dynamically |
-  | `free`       | Frees allocated memory |
-  | `pause`      | Pauses the process until a signal is received |
-  | `sleep`      | Suspends execution for a specified time |
-  | `usleep`     | Suspends execution for a specified time in microseconds |
-  | `exit`       | Terminates the program |
+---
 
-- **Project Guidelines**:
-  - The code strictly follows the 42 **norminette** standard.
-  - No memory leaks are allowed.
-  - The client and server must be compiled separately and named `client` and `server`.
-  - A `Makefile` must be provided to compile the files without relinking.
+## 🔁 How It Works
 
-- **Makefile**:
-  - Automates the compilation process for `minitalk`.
-  - **Rules**:
-    - `make` or `make all`: Compiles `client` and `server`.
-    - `make clean`: Removes object files (`.o`).
-    - `make fclean`: Removes compiled files and executables.
-    - `make re`: Recompiles the project from scratch.
+```
+CLIENT                              SERVER
+  │                                   │
+  │  ./client <PID> "hello"           │  ./server  →  prints PID
+  │                                   │
+  │  'h' = 0b01101000                 │
+  │  ──── SIGUSR1/SIGUSR2 ──────────► │  reconstruct bit by bit
+  │  ──── SIGUSR1/SIGUSR2 ──────────► │  reconstruct bit by bit
+  │  ──── ... (8 signals/char) ─────► │
+  │                                   │  prints full message
+  │  ◄─────────── SIGUSR1 ───────────  │  (acknowledgement)
+```
 
-- **Usage Example**:
-  ```bash
-  # Start the server
-  ./server
-  # The server will display its PID, for example: 43523
+1. The **server** starts first, prints its PID, and waits for incoming signals
+2. The **client** takes the server PID and message as arguments
+3. Each character is encoded as 8 bits — `SIGUSR2` for `1`, `SIGUSR1` for `0`
+4. The server reconstructs each character bit by bit and prints the full message
+5. The server sends back an acknowledgement signal so the client can proceed safely
+6. The server stays alive to handle further clients without restarting
 
-  # Run the client to send a message to the server
-  ./client 43523 "Vski, rei dos ceus!"
-  ```
+---
 
-- **Challenges and Learning Outcomes**:
-  - Understanding UNIX signals and IPC (Inter-Process Communication).
-  - Implementing a robust and reliable communication protocol.
-  - Ensuring data integrity during transmission without losses.
-  - Efficiently handling processes and signals in C.
-  - Managing dynamic memory and preventing leaks.
-  - Handling asynchronous signal reception and process synchronization.
+## 🛠️ Allowed Functions
 
+| Function | Description |
+|----------|-------------|
+| `write` | Write to standard output |
+| `ft_printf` | Print formatted messages |
+| `signal` | Register a signal handler |
+| `sigemptyset` | Initialise an empty signal set |
+| `sigaddset` | Add a signal to a set |
+| `sigaction` | Define fine-grained signal actions |
+| `kill` | Send a signal to a process |
+| `getpid` | Get the current process PID |
+| `malloc` | Allocate memory dynamically |
+| `free` | Free allocated memory |
+| `pause` | Suspend until a signal is received |
+| `sleep` | Suspend execution for a given time |
+| `usleep` | Suspend execution for a given time (microseconds) |
+| `exit` | Terminate the program |
+
+---
+
+## 🚀 Usage
+
+```bash
+# Terminal 1 — start the server
+./server
+# Output: PID: 43523
+
+# Terminal 2 — send a message
+./client 43523 "Vski, rei dos ceus!"
+```
+
+---
+
+## 🔧 Makefile
+
+```bash
+make          # Compile client and server
+make clean    # Remove object files (.o)
+make fclean   # Remove object files and executables
+make re       # Full recompilation from scratch
+```
+
+---
+
+## 📐 Guidelines
+
+- Follows the 42 **norminette** coding standard strictly
+- Zero memory leaks — a cleanup function handles all allocations on exit, including `SIGINT`
+- `client` and `server` are compiled as separate binaries
+- No relinking — the `Makefile` only recompiles what has changed
+
+---
+
+## 🧠 Key Concepts
+
+- UNIX signals and IPC (Inter-Process Communication)
+- Binary encoding and bit-level data transmission
+- Asynchronous signal handling and process synchronisation
+- Reliable protocol design without data loss
+- Dynamic memory management in C
 
 ---
